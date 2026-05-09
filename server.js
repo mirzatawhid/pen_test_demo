@@ -1,20 +1,17 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Static Folder
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(express.static("public"));
 
 // View Engine
 app.set("view engine", "ejs");
-
-const PORT = process.env.PORT || 3000;
-
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -24,54 +21,36 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-
 // MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
-})
+mongoose.connect(process.env.MONGO_URI)
 .then(async () => {
 
     console.log("MongoDB Connected");
 
-
-    // Create Demo User
-    const existing = await User.findOne({
-        username: "admin"
-    });
+    // Seed demo user
+    const existing = await User.findOne({ username: "admin" });
 
     if (!existing) {
-
         await User.create({
             username: "admin",
             password: "admin123"
         });
-
         console.log("Demo user created");
     }
 
-
-    // Home Page
+    // Home page
     app.get("/", (req, res) => {
         res.render("login");
     });
 
-
-    // Vulnerable Login
+    // =========================
+    // VULNERABLE LOGIN (DEMO)
+    // =========================
     app.post("/login", async (req, res) => {
 
-        let username;
-        let password;
+    const { username, password } = req.body;
 
-        try {
-
-            // INTENTIONALLY VULNERABLE
-            username = JSON.parse(req.body.username);
-            password = JSON.parse(req.body.password);
-
-        } catch (err) {
-
-            return res.send("Invalid JSON");
-        }
+    try {
 
         const user = await User.findOne({
             username: username,
@@ -84,37 +63,46 @@ mongoose.connect(process.env.MONGO_URI, {
                 "FLAG{NOSQL_INJECTION_SUCCESS}"
             ).toString("base64");
 
-            res.send(`
-                <h1>Login Successful</h1>
-
-                <p>User: ${user.username}</p>
-
-                <p>Token: ${token}</p>
-            `);
+            return res.render("result", {
+                success: true,
+                username: user.username,
+                token: token,
+                message: "Login Successful"
+            });
 
         } else {
 
-            res.send("<h1>Login Failed</h1>");
+            return res.render("result", {
+                success: false,
+                username: null,
+                token: null,
+                message: "Login Failed"
+            });
         }
 
+    } catch (err) {
+
+        return res.render("result", {
+            success: false,
+            username: null,
+            token: null,
+            message: "Server Error"
+        });
+    }
     });
 
-
-    // Test Route
+    // Test route
     app.get("/test", (req, res) => {
         res.send("Server Working");
     });
 
-
-    // Start Server
+    // Start server
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 
 })
 .catch(err => {
-
     console.log("MongoDB Connection Failed");
     console.log(err);
-
 });

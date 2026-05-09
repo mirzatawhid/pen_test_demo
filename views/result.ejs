@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Result</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Authentication Result</h1>
+
+    <!-- STATUS BADGE -->
+    <div class="badge-container">
+
+        <% if (success) { %>
+            <div class="badge success">SUCCESS</div>
+        <% } else { %>
+            <div class="badge fail">FAILED</div>
+        <% } %>
+
+    </div>
+
+    <p class="message"><%= message %></p>
+
+    <% if (success) { %>
+
+        <div class="info-box">
+            <p><strong>User:</strong> <%= username %></p>
+        </div>
+
+        <div class="info-box token">
+            <p><strong>Token:</strong></p>
+            <code><%= token %></code>
+        </div>
+
+    <% } %>
+
+    <a href="/" class="btn">Back to Login</a>
+
+</div>
+
+</body>
+</html>
