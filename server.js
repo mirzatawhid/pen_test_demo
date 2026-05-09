@@ -6,6 +6,11 @@ require("dotenv").config();
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Static Folder
+app.use(express.static("public"));
+
+// View Engine
 app.set("view engine", "ejs");
 
 const PORT = process.env.PORT || 3000;
@@ -45,12 +50,13 @@ mongoose.connect(process.env.MONGO_URI, {
     }
 
 
-    // Routes
+    // Home Page
     app.get("/", (req, res) => {
         res.render("login");
     });
 
 
+    // Vulnerable Login
     app.post("/login", async (req, res) => {
 
         let username;
@@ -58,6 +64,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
         try {
 
+            // INTENTIONALLY VULNERABLE
             username = JSON.parse(req.body.username);
             password = JSON.parse(req.body.password);
 
@@ -79,7 +86,9 @@ mongoose.connect(process.env.MONGO_URI, {
 
             res.send(`
                 <h1>Login Successful</h1>
+
                 <p>User: ${user.username}</p>
+
                 <p>Token: ${token}</p>
             `);
 
@@ -91,6 +100,13 @@ mongoose.connect(process.env.MONGO_URI, {
     });
 
 
+    // Test Route
+    app.get("/test", (req, res) => {
+        res.send("Server Working");
+    });
+
+
+    // Start Server
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
